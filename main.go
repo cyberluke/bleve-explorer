@@ -11,13 +11,14 @@ package main
 
 import (
 	"flag"
+	_ "fmt"
+	"github.com/gorilla/mux"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 
-	"github.com/gorilla/mux"
-
+	"github.com/alash3al/bbadger"
 	"github.com/blevesearch/bleve"
 	bleveMappingUI "github.com/blevesearch/bleve-mapping-ui"
 	bleveHttp "github.com/blevesearch/bleve/http"
@@ -37,6 +38,8 @@ var staticBleveMappingPath = flag.String("staticBleveMapping", "",
 func main() {
 	flag.Parse()
 
+	bleve.Config.DefaultKVStore=bbadger.Name
+
 	// walk the data dir and register index names
 	dirEntries, err := ioutil.ReadDir(*dataDir)
 	if err != nil {
@@ -53,7 +56,8 @@ func main() {
 			continue
 		}
 
-		i, err := bleve.Open(indexPath)
+		i, err := bbadger.BleveIndex(indexPath, bleve.NewIndexMapping())
+		//i, err := bleve.Open(indexPath)
 		if err != nil {
 			log.Printf("error opening index %s: %v", indexPath, err)
 		} else {
@@ -61,6 +65,7 @@ func main() {
 			bleveHttp.RegisterIndexName(dirInfo.Name(), i)
 			// set correct name in stats
 			i.SetName(dirInfo.Name())
+
 		}
 	}
 
